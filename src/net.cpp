@@ -1,6 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2011-2012 Litecoin Developers
+// Copyright (c) 2011-2012 GameCoin Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -1149,7 +1149,7 @@ void MapPort()
 // The first name is used as information source for addrman.
 // The second name should resolve to a list of seed addresses.
 static const char *strDNSSeed[][2] = {
-    {"trmserver.no-ip.org", "trmserver.no-ip.org"},
+    //{"trmserver.no-ip.org", "trmserver.no-ip.org"},
     //{"bytesized-vps.com", "dnsseed.bytesized-vps.com"},
     //{"xurious.com", "dnsseed.ltc.xurious.com"},
 };
