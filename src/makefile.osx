@@ -31,10 +31,10 @@ TESTLIBS += \
  $(DEPSDIR)/lib/libboost_unit_test_framework-mt.a
 LIBS += \
  $(DEPSDIR)/lib/db48/libdb_cxx-4.8.a \
- $(DEPSDIR)/lib/libboost_system-mt.a \
- $(DEPSDIR)/lib/libboost_filesystem-mt.a \
- $(DEPSDIR)/lib/libboost_program_options-mt.a \
- $(DEPSDIR)/lib/libboost_thread-mt.a \
+ $(DEPSDIR)/lib/lboost_system.a \
+ $(DEPSDIR)/lib/lboost_filesystem.a \
+ $(DEPSDIR)/lib/lboost_program_options.a \
+ $(DEPSDIR)/lib/lboost_thread.a \
  $(DEPSDIR)/lib/libssl.a \
  $(DEPSDIR)/lib/libcrypto.a \
  -lz
@@ -43,10 +43,10 @@ TESTLIBS += \
  -lboost_unit_test_framework-mt
 LIBS += \
  -ldb_cxx-4.8 \
- -lboost_system-mt \
- -lboost_filesystem-mt \
- -lboost_program_options-mt \
- -lboost_thread-mt \
+ -lboost_system \
+ -lboost_filesystem \
+ -lboost_program_options \
+ -lboost_thread \
  -lssl \
  -lcrypto \
  -lz
