@@ -23,6 +23,11 @@ contains(RELEASE, 1) {
     }
 }
 
+macx: {
+QMAKE_CFLAGS += -stdlib=libstdc++
+QMAKE_CXXFLAGS += -stdlib=libstdc++
+QMAKE_LFLAGS += -stdlib=libstdc++
+}
 # use: qmake "USE_QRCODE=1"
 # libqrencode (http://fukuchi.org/works/qrencode/index.en.html) must be installed for support
 contains(USE_QRCODE, 1) {

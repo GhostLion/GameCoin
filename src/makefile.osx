@@ -1,23 +1,16 @@
-# -*- mode: Makefile; -*-
-# Copyright (c) 2011 Bitcoin Developers
-# Distributed under the MIT/X11 software license, see the accompanying
-# file license.txt or http://www.opensource.org/licenses/mit-license.php.
-
-# Mac OS X makefile for GameCoin
-# Originally by Laszlo Hanyecz (solar@heliacal.net)
-
 CXX=llvm-g++
-DEPSDIR=/opt/local
+BREWDIR=/usr/local
 
 INCLUDEPATHS= \
  -I"$(CURDIR)" \
- -I"$(CURDIR)"/obj \
- -I"$(DEPSDIR)/include" \
- -I"$(DEPSDIR)/include/db48"
+ -I"$(CURDIR)/obj" \
+ -I"$(BREWDIR)/opt/berkeley-db4/include" \
+ -I"$(BREWDIR)/opt/boost/include"
 
 LIBPATHS= \
  -L"$(DEPSDIR)/lib" \
- -L"$(DEPSDIR)/lib/db48"
+ -L"$(BREWDIR)/opt/berkeley-db4/lib" \
+ -L"$(BREWDIR)/opt/boost/lib" 
 
 USE_UPNP:=1
 
@@ -26,27 +19,27 @@ LIBS= -dead_strip
 TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
 
 ifdef STATIC
-# Build STATIC if you are redistributing the gamecoin binary
+# Build STATIC if you are redistributing the ppcoind binary
 TESTLIBS += \
  $(DEPSDIR)/lib/libboost_unit_test_framework-mt.a
 LIBS += \
- $(DEPSDIR)/lib/db48/libdb_cxx-4.8.a \
- $(DEPSDIR)/lib/lboost_system.a \
- $(DEPSDIR)/lib/lboost_filesystem.a \
- $(DEPSDIR)/lib/lboost_program_options.a \
- $(DEPSDIR)/lib/lboost_thread.a \
- $(DEPSDIR)/lib/libssl.a \
- $(DEPSDIR)/lib/libcrypto.a \
+ $(BREWDIR)/opt/lib/db48/libdb_cxx-4.8.a \
+ $(BREWDIR)/lib/libboost_system-mt.a \
+ $(BREWDIR)/lib/libboost_filesystem-mt.a \
+ $(BREWDIR)/lib/libboost_program_options-mt.a \
+ $(BREWDIR)/lib/libboost_thread-mt.a \
+ $(BREWDIR)/lib/libssl.a \
+ $(BREWDIR)/lib/libcrypto.a \
  -lz
 else
 TESTLIBS += \
  -lboost_unit_test_framework-mt
 LIBS += \
  -ldb_cxx-4.8 \
- -lboost_system \
- -lboost_filesystem \
- -lboost_program_options \
- -lboost_thread \
+ -lboost_system-mt \
+ -lboost_filesystem-mt \
+ -lboost_program_options-mt \
+ -lboost_thread-mt \
  -lssl \
  -lcrypto \
  -lz
@@ -55,17 +48,14 @@ endif
 
 DEFS=-DMAC_OSX -DMSG_NOSIGNAL=0 -DBOOST_SPIRIT_THREADSAFE -DUSE_IPV6
 
-ifdef RELEASE
-# Compile for maximum compatibility and smallest size.
-# This requires that dependencies are compiled
-# the same way.
-CFLAGS = -mmacosx-version-min=10.5 -arch i386 -O3
-else
-CFLAGS = -g
-endif
+
+CFLAGS = -mmacosx-version-min=10.9 -O3
+
+CFLAGS += -arch x86_64
+
 
 # ppc doesn't work because we don't support big-endian
-CFLAGS += -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter \
+CFLAGS += -w -Wextra -Wno-sign-compare -Wno-invalid-offsetof -Wformat-security \
     $(DEBUGFLAGS) $(DEFS) $(INCLUDEPATHS)
 
 OBJS= \
@@ -140,7 +130,7 @@ obj-test/%.o: test/%.cpp
 	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
 	  rm -f $(@:%.o=%.d)
 
-test_gamecoin: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
+test_smallchange: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
 	$(CXX) $(CFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS) $(TESTLIBS)
 
 clean:
