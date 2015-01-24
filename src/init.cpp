@@ -795,35 +795,37 @@ bool AppInit2(boost::thread_group& threadGroup)
                    nWalletDBUpdated++;
                }
            } // (!fDisableWallet)
+  // ********************************************************* Step 9: import blocks
 
-          // ********************************************************* Step 9: import blocks
+           // scan for better chains in the block chain database, that are not yet connected in the active best chain
 
-    if (mapArgs.count("-loadblock"))
-    {
-        BOOST_FOREACH(string strFile, mapMultiArgs["-loadblock"])
-        {
-            FILE *file = fopen(strFile.c_str(), "rb");
-            if (file)
-                LoadExternalBlockFile(file);
-        }
-    }
+           if (mapArgs.count("-loadblock"))
+              {
+                  BOOST_FOREACH(string strFile, mapMultiArgs["-loadblock"])
+                  {
+                      FILE *file = fopen(strFile.c_str(), "rb");
+                      if (file)
+                          LoadExternalBlockFile(file);
+                  }
+              }
 
-    // ********************************************************* Step 10: load peers
 
-    uiInterface.InitMessage(_("Loading addresses..."));
-    printf("Loading addresses...\n");
-    nStart = GetTimeMillis();
+           // ********************************************************* Step 10: load peers
 
-    {
-        CAddrDB adb;
-        if (!adb.Read(addrman))
-            printf("Invalid or missing peers.dat; recreating\n");
-    }
+               uiInterface.InitMessage(_("Loading addresses..."));
 
-    printf("Loaded %i addresses from peers.dat  %"PRI64d"ms\n",
-           addrman.size(), GetTimeMillis() - nStart);
+               nStart = GetTimeMillis();
 
-    // ********************************************************* Step 11: start node
+               {
+                   CAddrDB adb;
+                   if (!adb.Read(addrman))
+                       printf("Invalid or missing peers.dat; recreating\n");
+               }
+
+               printf("Loaded %i addresses from peers.dat  %"PRI64d"ms\n",
+                      addrman.size(), GetTimeMillis() - nStart);
+
+                // ********************************************************* Step 11: start node
 
     if (!CheckDiskSpace())
         return false;
