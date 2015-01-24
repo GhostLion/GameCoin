@@ -444,53 +444,69 @@ bool AppInit2(boost::thread_group& threadGroup)
               return InitError(strprintf(_("Invalid amount for -mininput=<amount>: '%s'"), mapArgs["-mininput"].c_str()));
       }
 
-    // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
+      // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
 
-    // Make sure only a single gamecoin process is using the data directory.
-    boost::filesystem::path pathLockFile = GetDataDir() / ".lock";
-    FILE* file = fopen(pathLockFile.string().c_str(), "a"); // empty lock file; created if it doesn't exist.
-    if (file) fclose(file);
-    static boost::interprocess::file_lock lock(pathLockFile.string().c_str());
-    if (!lock.try_lock())
-        return InitError(strprintf(_("Cannot obtain a lock on data directory %s.  GameCoin is probably already running."), GetDataDir().string().c_str()));
+      std::string strDataDir = GetDataDir().string();
 
-#if !defined(WIN32) && !defined(QT_GUI)
-    if (fDaemon)
-    {
-        // Daemonize
-        pid_t pid = fork();
-        if (pid < 0)
-        {
-            fprintf(stderr, "Error: fork() returned %d errno %d\n", pid, errno);
-            return false;
-        }
-        if (pid > 0)
-        {
-            CreatePidFile(GetPidFile(), pid);
-            return true;
-        }
+      // Make sure only a single Bitcoin process is using the data directory.
+      boost::filesystem::path pathLockFile = GetDataDir() / ".lock";
+      FILE* file = fopen(pathLockFile.string().c_str(), "a"); // empty lock file; created if it doesn't exist.
+      if (file) fclose(file);
+      static boost::interprocess::file_lock lock(pathLockFile.string().c_str());
+      if (!lock.try_lock())
+          return InitError(strprintf(_("Cannot obtain a lock on data directory %s. Litecoin is probably already running."), strDataDir.c_str()));
 
-        pid_t sid = setsid();
-        if (sid < 0)
-            fprintf(stderr, "Error: setsid() returned %d errno %d\n", sid, errno);
-    }
-#endif
+      if (GetBoolArg("-shrinkdebugfile", !fDebug))
+          ShrinkDebugFile();
+      printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+      printf("Litecoin version %s (%s)\n", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
+      printf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
+      if (!fLogTimestamps)
+          printf("Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()).c_str());
+      printf("Default data directory %s\n", GetDefaultDataDir().string().c_str());
+      printf("Using data directory %s\n", strDataDir.c_str());
+      std::ostringstream strErrors;
 
-    if (!fDebug)
-        ShrinkDebugFile();
-    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    printf("GameCoin version %s (%s)\n", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
-    printf("Startup time: %s\n", DateTimeStrFormat("%x %H:%M:%S", GetTime()).c_str());
-    printf("Default data directory %s\n", GetDefaultDataDir().string().c_str());
-    printf("Used data directory %s\n", GetDataDir().string().c_str());
-    std::ostringstream strErrors;
+      if (fDaemon)
+          fprintf(stdout, "Litecoin server starting\n");
 
-    if (fDaemon)
-        fprintf(stdout, "GameCoin server starting\n");
+      int64 nStart;
 
-    int64 nStart;
+  #if defined(USE_SSE2)
+      scrypt_detect_sse2();
+  #endif
+      // ********************************************************* Step 5: verify wallet database integrity
 
-    // ********************************************************* Step 5: network initialization
+       if (!fDisableWallet) {
+           uiInterface.InitMessage(_("Verifying wallet..."));
+
+           if (!bitdb.Open(GetDataDir()))
+           {
+               // try moving the database env out of the way
+               boost::filesystem::path pathDatabase = GetDataDir() / "database";
+               boost::filesystem::path pathDatabaseBak = GetDataDir() / strprintf("database.%"PRI64d".bak", GetTime());
+               try {
+                   boost::filesystem::rename(pathDatabase, pathDatabaseBak);
+                   printf("Moved old %s to %s. Retrying.\n", pathDatabase.string().c_str(), pathDatabaseBak.string().c_str());
+               } catch(boost::filesystem::filesystem_error &error) {
+                    // failure is ok (well, not really, but it's not worse than what we started with)
+               }
+
+               // try again
+               if (!bitdb.Open(GetDataDir())) {
+                   // if it still fails, it probably means we can't even create the database env
+                   string msg = strprintf(_("Error initializing wallet database environment %s!"), strDataDir.c_str());
+                   return InitError(msg);
+               }
+           }
+
+
+
+       } // (!fDisableWallet)
+
+
+
+      // ********************************************************* Step 5: network initialization
 
     int nSocksVersion = GetArg("-socks", 5);
 
