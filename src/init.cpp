@@ -506,7 +506,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
 
 
-      // ********************************************************* Step 5: network initialization
+ // ********************************************************* Step 6: network initialization
 
     int nSocksVersion = GetArg("-socks", 5);
 
@@ -606,7 +606,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     BOOST_FOREACH(string strDest, mapMultiArgs["-seednode"])
         AddOneShot(strDest);
 
-    // ********************************************************* Step 6: load blockchain
+    // ********************************************************* Step 7: load blockchain
 
     if (GetBoolArg("-loadblockindextest"))
     {
@@ -687,7 +687,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         return false;
     }
 
-    // ********************************************************* Step 7: load wallet
+    // ********************************************************* Step 8: load wallet
 
     uiInterface.InitMessage(_("Loading wallet..."));
     printf("Loading wallet...\n");
@@ -764,7 +764,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         printf(" rescan      %15"PRI64d"ms\n", GetTimeMillis() - nStart);
     }
 
-    // ********************************************************* Step 8: import blocks
+    // ********************************************************* Step 9: import blocks
 
     if (mapArgs.count("-loadblock"))
     {
@@ -776,7 +776,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         }
     }
 
-    // ********************************************************* Step 9: load peers
+    // ********************************************************* Step 10: load peers
 
     uiInterface.InitMessage(_("Loading addresses..."));
     printf("Loading addresses...\n");
@@ -791,7 +791,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     printf("Loaded %i addresses from peers.dat  %"PRI64d"ms\n",
            addrman.size(), GetTimeMillis() - nStart);
 
-    // ********************************************************* Step 10: start node
+    // ********************************************************* Step 11: start node
 
     if (!CheckDiskSpace())
         return false;
@@ -811,7 +811,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (fServer)
         CreateThread(ThreadRPCServer, NULL);
 
-    // ********************************************************* Step 11: finished
+    // ********************************************************* Step 12: finished
 
     uiInterface.InitMessage(_("Done loading"));
     printf("Done loading\n");
