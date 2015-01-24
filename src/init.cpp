@@ -390,64 +390,59 @@ bool AppInit2(boost::thread_group& threadGroup)
       }
 
 
-  // ********************************************************* Step 3: parameter-to-internal-flags
+      // ********************************************************* Step 3: parameter-to-internal-flags
 
-    fDebug = GetBoolArg("-debug");
-
-    // -debug implies fDebug*
-    if (fDebug)
-        fDebugNet = true;
-    else
-        fDebugNet = GetBoolArg("-debugnet");
-
-    bitdb.SetDetach(GetBoolArg("-detachdb", false));
-
-#if !defined(WIN32) && !defined(QT_GUI)
-    fDaemon = GetBoolArg("-daemon");
-#else
-    fDaemon = false;
-#endif
-
-    if (fDaemon)
-        fServer = true;
-    else
-        fServer = GetBoolArg("-server");
-
-    /* force fServer when running without GUI */
-#if !defined(QT_GUI)
-    fServer = true;
-#endif
-    fPrintToConsole = GetBoolArg("-printtoconsole");
-    fPrintToDebugger = GetBoolArg("-printtodebugger");
-    fLogTimestamps = GetBoolArg("-logtimestamps");
-
-    if (mapArgs.count("-timeout"))
-    {
-        int nNewTimeout = GetArg("-timeout", 5000);
-        if (nNewTimeout > 0 && nNewTimeout < 600000)
-            nConnectTimeout = nNewTimeout;
-    }
-
-    // Continue to put "/P2SH/" in the coinbase to monitor
-    // BIP16 support.
-    // This can be removed eventually...
-    const char* pszP2SH = "/P2SH/";
-    COINBASE_FLAGS << std::vector<unsigned char>(pszP2SH, pszP2SH+strlen(pszP2SH));
+      fDebug = GetBoolArg("-debug");
 
 
-    if (mapArgs.count("-paytxfee"))
-    {
-        if (!ParseMoney(mapArgs["-paytxfee"], nTransactionFee))
-            return InitError(strprintf(_("Invalid amount for -paytxfee=<amount>: '%s'"), mapArgs["-paytxfee"].c_str()));
-        if (nTransactionFee > 0.25 * COIN)
-            InitWarning(_("Warning: -paytxfee is set very high. This is the transaction fee you will pay if you send a transaction."));
-    }
+      // -debug implies fDebug*
+      if (fDebug)
+          fDebugNet = true;
+      else
+          fDebugNet = GetBoolArg("-debugnet");
 
-    if (mapArgs.count("-mininput"))
-    {
-        if (!ParseMoney(mapArgs["-mininput"], nMinimumInputValue))
-            return InitError(strprintf(_("Invalid amount for -mininput=<amount>: '%s'"), mapArgs["-mininput"].c_str()));
-    }
+      if (fDaemon)
+          fServer = true;
+      else
+          fServer = GetBoolArg("-server");
+
+      /* force fServer when running without GUI */
+  #if !defined(QT_GUI)
+      fServer = true;
+  #endif
+      fPrintToConsole = GetBoolArg("-printtoconsole");
+      fPrintToDebugger = GetBoolArg("-printtodebugger");
+      fLogTimestamps = GetBoolArg("-logtimestamps", true);
+      bool fDisableWallet = GetBoolArg("-disablewallet", false);
+
+      if (mapArgs.count("-timeout"))
+      {
+          int nNewTimeout = GetArg("-timeout", 5000);
+          if (nNewTimeout > 0 && nNewTimeout < 600000)
+              nConnectTimeout = nNewTimeout;
+      }
+
+      // Continue to put "/P2SH/" in the coinbase to monitor
+      // BIP16 support.
+      // This can be removed eventually...
+      const char* pszP2SH = "/P2SH/";
+      COINBASE_FLAGS << std::vector<unsigned char>(pszP2SH, pszP2SH+strlen(pszP2SH));
+
+
+      if (mapArgs.count("-paytxfee"))
+      {
+          if (!ParseMoney(mapArgs["-paytxfee"], nTransactionFee))
+              return InitError(strprintf(_("Invalid amount for -paytxfee=<amount>: '%s'"), mapArgs["-paytxfee"].c_str()));
+          if (nTransactionFee > 0.25 * COIN)
+              InitWarning(_("Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction."));
+      }
+
+
+      if (mapArgs.count("-mininput"))
+      {
+          if (!ParseMoney(mapArgs["-mininput"], nMinimumInputValue))
+              return InitError(strprintf(_("Invalid amount for -mininput=<amount>: '%s'"), mapArgs["-mininput"].c_str()));
+      }
 
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
 
