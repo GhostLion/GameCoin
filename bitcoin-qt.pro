@@ -12,6 +12,7 @@ INCLUDEPATH += /usr/local/opt/boost/include
 INCLUDEPATH += /usr/local/opt/berkeley-db4/include
 LIBPATHS += -L /usr/local/opt/boost/lib
 LIBS= -dead_strip
+
 #Windows
 #LIBS += -L"C:/Program Files (x86)/boost/boost_1_49/lib" -lboost_thread
 # use: qmake "RELEASE=1"
