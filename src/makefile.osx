@@ -1,7 +1,8 @@
 CXX=llvm-g++
 BREWDIR=/usr/local
 
-INCLUDEPATHS= \
+
+# ppc doesn't work because we don't suppINCLUDEPATHS= \
  -I"$(CURDIR)" \
  -I"$(CURDIR)/obj" \
  -I"$(BREWDIR)/opt/berkeley-db4/include" \
@@ -53,8 +54,7 @@ CFLAGS = -mmacosx-version-min=10.9 -O3
 
 CFLAGS += -arch x86_64
 
-
-# ppc doesn't work because we don't support big-endian
+ort big-endian
 CFLAGS += -w -Wextra -Wno-sign-compare -Wno-invalid-offsetof -Wformat-security \
     $(DEBUGFLAGS) $(DEFS) $(INCLUDEPATHS)
 
@@ -130,7 +130,7 @@ obj-test/%.o: test/%.cpp
 	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
 	  rm -f $(@:%.o=%.d)
 
-test_smallchange: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
+test_gameCoin: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
 	$(CXX) $(CFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS) $(TESTLIBS)
 
 clean:
