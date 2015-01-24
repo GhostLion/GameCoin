@@ -825,43 +825,37 @@ bool AppInit2(boost::thread_group& threadGroup)
                printf("Loaded %i addresses from peers.dat  %"PRI64d"ms\n",
                       addrman.size(), GetTimeMillis() - nStart);
 
-                // ********************************************************* Step 11: start node
 
-    if (!CheckDiskSpace())
-        return false;
+               // ********************************************************* Step 11: start node
 
-    RandAddSeedPerfmon();
+               if (!CheckDiskSpace())
+                   return false;
 
-    //// debug print
-    printf("mapBlockIndex.size() = %d\n",   mapBlockIndex.size());
-    printf("nBestHeight = %d\n",            nBestHeight);
-    printf("setKeyPool.size() = %d\n",      pwalletMain->setKeyPool.size());
-    printf("mapWallet.size() = %d\n",       pwalletMain->mapWallet.size());
-    printf("mapAddressBook.size() = %d\n",  pwalletMain->mapAddressBook.size());
+               if (!strErrors.str().empty())
+                   return InitError(strErrors.str());
 
-    if (!CreateThread(StartNode, NULL))
-        InitError(_("Error: could not start node"));
+               RandAddSeedPerfmon();
 
-    if (fServer)
-        CreateThread(ThreadRPCServer, NULL);
 
-    // ********************************************************* Step 12: finished
 
-    uiInterface.InitMessage(_("Done loading"));
-    printf("Done loading\n");
 
-    if (!strErrors.str().empty())
-        return InitError(strErrors.str());
+               // InitRPCMining is needed here so getwork/getblocktemplate in the GUI debug console works properly.
+               if (fServer)
 
-     // Add wallet transactions that aren't already in a block to mapTransactions
-    pwalletMain->ReacceptWalletTransactions();
+               // Generate coins in the background
+               if (pwalletMain)
+                   GenerateBitcoins(GetBoolArg("-gen", false), pwalletMain);
 
-#if !defined(QT_GUI)
-    // Loop until process is exit()ed from shutdown() function,
-    // called from ThreadRPCServer thread when a "stop" command is received.
-    while (1)
-        Sleep(5000);
-#endif
+               // ********************************************************* Step 12: finished
 
-    return true;
-}
+               uiInterface.InitMessage(_("Done loading"));
+
+               if (pwalletMain) {
+                   // Add wallet transactions that aren't already in a block to mapTransactions
+                   pwalletMain->ReacceptWalletTransactions();
+
+                   // Run a thread to flush wallet periodically
+                 }
+
+               return !fRequestShutdown;
+           }
