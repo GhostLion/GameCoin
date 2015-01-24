@@ -15,7 +15,7 @@
 #include <boost/filesystem/convenience.hpp>
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-
+#include <openssl/crypto.h>
 #ifndef WIN32
 #include <signal.h>
 #endif
@@ -299,22 +299,43 @@ std::string HelpMessage()
 /** Initialize GameCoin.
  *  @pre Parameters should be parsed and config file should be read.
  */
-bool AppInit2()
+bool AppInit2(boost::thread_group& threadGroup)
 {
     // ********************************************************* Step 1: setup
+    // ********************************************************* Step 1: setup
 #ifdef _MSC_VER
-    // Turn off microsoft heap dump noise
+    // Turn off Microsoft heap dump noise
     _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
     _CrtSetReportFile(_CRT_WARN, CreateFileA("NUL", GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, 0));
 #endif
 #if _MSC_VER >= 1400
-    // Disable confusing "helpful" text message on abort, ctrl-c
+    // Disable confusing "helpful" text message on abort, Ctrl-C
     _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+#endif
+#ifdef WIN32
+    // Enable Data Execution Prevention (DEP)
+    // Minimum supported OS versions: WinXP SP3, WinVista >= SP1, Win Server 2008
+    // A failure is non-critical and needs no further attention!
+#ifndef PROCESS_DEP_ENABLE
+    // We define this here, because GCCs winbase.h limits this to _WIN32_WINNT >= 0x0601 (Windows 7),
+    // which is not correct. Can be removed, when GCCs winbase.h is fixed!
+#define PROCESS_DEP_ENABLE 0x00000001
+#endif
+    typedef BOOL (WINAPI *PSETPROCDEPPOL)(DWORD);
+    PSETPROCDEPPOL setProcDEPPol = (PSETPROCDEPPOL)GetProcAddress(GetModuleHandleA("Kernel32.dll"), "SetProcessDEPPolicy");
+    if (setProcDEPPol != NULL) setProcDEPPol(PROCESS_DEP_ENABLE);
+
+    // Initialize Windows Sockets
+    WSADATA wsadata;
+    int ret = WSAStartup(MAKEWORD(2,2), &wsadata);
+    if (ret != NO_ERROR || LOBYTE(wsadata.wVersion ) != 2 || HIBYTE(wsadata.wVersion) != 2)
+    {
+        return InitError(strprintf("Error: Winsock library failed to start (WSAStartup returned error %d)", ret));
+    }
 #endif
 #ifndef WIN32
     umask(077);
-#endif
-#ifndef WIN32
+
     // Clean shutdown on SIGTERM
     struct sigaction sa;
     sa.sa_handler = HandleSIGTERM;
@@ -330,45 +351,46 @@ bool AppInit2()
     sa_hup.sa_flags = 0;
     sigaction(SIGHUP, &sa_hup, NULL);
 #endif
-
     // ********************************************************* Step 2: parameter interactions
 
-    fTestNet = GetBoolArg("-testnet");
-    // Keep irc seeding on by default for now.
-//    if (fTestNet)
-//    {
-        SoftSetBoolArg("-irc", true);
-//    }
+      fTestNet = GetBoolArg("-testnet");
 
-    if (mapArgs.count("-bind")) {
-        // when specifying an explicit binding address, you want to listen on it
-        // even when -connect or -proxy is specified
-        SoftSetBoolArg("-listen", true);
-    }
 
-    if (mapArgs.count("-connect")) {
-        // when only connecting to trusted nodes, do not seed via DNS, or listen by default
-        SoftSetBoolArg("-dnsseed", false);
-        SoftSetBoolArg("-listen", false);
-    }
+      if (mapArgs.count("-bind")) {
+          // when specifying an explicit binding address, you want to listen on it
+          // even when -connect or -proxy is specified
+          SoftSetBoolArg("-listen", true);
+      }
 
-    if (mapArgs.count("-proxy")) {
-        // to protect privacy, do not listen by default if a proxy server is specified
-        SoftSetBoolArg("-listen", false);
-    }
+      if (mapArgs.count("-connect") && mapMultiArgs["-connect"].size() > 0) {
+          // when only connecting to trusted nodes, do not seed via DNS, or listen by default
+          SoftSetBoolArg("-dnsseed", false);
+          SoftSetBoolArg("-listen", false);
+      }
 
-    if (!GetBoolArg("-listen", true)) {
-        // do not map ports or try to retrieve public IP when not listening (pointless)
-        SoftSetBoolArg("-upnp", false);
-        SoftSetBoolArg("-discover", false);
-    }
+      if (mapArgs.count("-proxy")) {
+          // to protect privacy, do not listen by default if a proxy server is specified
+          SoftSetBoolArg("-listen", false);
+      }
 
-    if (mapArgs.count("-externalip")) {
-        // if an explicit public IP is specified, do not try to find others
-        SoftSetBoolArg("-discover", false);
-    }
+      if (!GetBoolArg("-listen", true)) {
+          // do not map ports or try to retrieve public IP when not listening (pointless)
+          SoftSetBoolArg("-upnp", false);
+          SoftSetBoolArg("-discover", false);
+      }
 
-    // ********************************************************* Step 3: parameter-to-internal-flags
+      if (mapArgs.count("-externalip")) {
+          // if an explicit public IP is specified, do not try to find others
+          SoftSetBoolArg("-discover", false);
+      }
+
+      if (GetBoolArg("-salvagewallet")) {
+          // Rewrite just private keys: rescan to find transactions
+          SoftSetBoolArg("-rescan", true);
+      }
+
+
+  // ********************************************************* Step 3: parameter-to-internal-flags
 
     fDebug = GetBoolArg("-debug");
 
@@ -633,7 +655,7 @@ bool AppInit2()
         FILE* file = fopen((GetDataDir() / "blockstat.dat").string().c_str(), "w");
         if (!file)
            return false;
-        
+
         for (map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.begin(); mi != mapBlockIndex.end(); ++mi)
         {
             CBlockIndex* pindex = (*mi).second;
@@ -798,4 +820,3 @@ bool AppInit2()
 
     return true;
 }
-
