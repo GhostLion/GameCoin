@@ -7,9 +7,11 @@
 #include "db.h"
 #include "util.h"
 #include "main.h"
+#include "init.h"
 #include <boost/version.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <db_cxx.h>
 
 #ifndef WIN32
 #include "sys/stat.h"

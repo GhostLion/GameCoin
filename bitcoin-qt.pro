@@ -3,13 +3,14 @@ TEMPLATE = app
 TARGET =
 VERSION = 1.0.0
 INCLUDEPATH +=src src/json src/qt
-DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE USE_IPV6
+DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE USE_IPV6 MAC_OSX MSG_NOSIGNAL=0
 CONFIG += no_include_pwd
 OBJECTS_DIR = build
 MOC_DIR = build
 UI_DIR = build
 INCLUDEPATH += /usr/local/opt/boost/include
 INCLUDEPATH += /usr/local/opt/berkeley-db4/include
+INCLUDEPATH += /usr/local/opt/berkeley-db/include
 LIBPATHS += -L /usr/local/opt/boost/lib
 LIBS= -dead_strip
 
@@ -287,7 +288,7 @@ isEmpty(BOOST_THREAD_LIB_SUFFIX) {
 }
 
 isEmpty(BDB_LIB_PATH) {
-    macx:BDB_LIB_PATH = /opt/local/lib/db48
+    macx:BDB_LIB_PATH = /usr/local/opt/berkeley-db4/lib
 }
 
 isEmpty(BDB_LIB_SUFFIX) {
@@ -295,7 +296,7 @@ isEmpty(BDB_LIB_SUFFIX) {
 }
 
 isEmpty(BDB_INCLUDE_PATH) {
-    macx:BDB_INCLUDE_PATH = /opt/local/include/db48
+    macx:BDB_INCLUDE_PATH =/usr/local/opt/berkeley-db4/include
 }
 
 isEmpty(BOOST_LIB_PATH) {

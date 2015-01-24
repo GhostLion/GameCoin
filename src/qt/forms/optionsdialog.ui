@@ -23,7 +23,7 @@
       <enum>QTabWidget::North</enum>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tabMain">
       <attribute name="title">
@@ -82,7 +82,7 @@
           <string>Automatically start SmallChange after logging in to the system.</string>
          </property>
          <property name="text">
-          <string>&amp;Start SmallChange on system login</string>
+          <string>&amp;Start GameCoin on system login</string>
          </property>
         </widget>
        </item>
