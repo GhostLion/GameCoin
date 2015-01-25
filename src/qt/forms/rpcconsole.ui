@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>740</width>
-    <height>539</height>
+    <height>450</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>GameCoin - Debug window</string>
+   <string>Gamecoin - Debug window</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
@@ -36,7 +36,7 @@
           </font>
          </property>
          <property name="text">
-          <string>GameCoin Core</string>
+          <string>Gamecoin Core</string>
          </property>
         </widget>
        </item>
@@ -315,14 +315,14 @@
           </font>
          </property>
          <property name="text">
-          <string>Debug logfile</string>
+          <string>Debug log file</string>
          </property>
         </widget>
        </item>
        <item row="15" column="0">
         <widget class="QPushButton" name="openDebugLogfileButton">
          <property name="toolTip">
-          <string>Open the GameCoin debug logfile from the current data directory. This can take a few seconds for large logfiles.</string>
+          <string>Open the Gamecoin debug log file from the current data directory. This can take a few seconds for large log files.</string>
          </property>
          <property name="text">
           <string>&amp;Open</string>
@@ -348,7 +348,7 @@
        <item row="17" column="0">
         <widget class="QPushButton" name="showCLOptionsButton">
          <property name="toolTip">
-          <string>Show the smallchange-qt help message to get a list with possible command-line options.</string>
+          <string>Show the Gamecoin-Qt help message to get a list with possible Gamecoin command-line options.</string>
          </property>
          <property name="text">
           <string>&amp;Show</string>

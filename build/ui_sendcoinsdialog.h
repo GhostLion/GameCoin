@@ -357,7 +357,7 @@ public:
         horizontalLayoutCoinControl4 = new QHBoxLayout();
         horizontalLayoutCoinControl4->setSpacing(12);
         horizontalLayoutCoinControl4->setObjectName(QString::fromUtf8("horizontalLayoutCoinControl4"));
-        horizontalLayoutCoinControl4->setSizeConstraint(QLayout::SetDefaultConstraint);
+        horizontalLayoutCoinControl4->setSizeConstraint(QLayout::SetDefauGMConstraint);
         horizontalLayoutCoinControl4->setContentsMargins(-1, 5, 5, -1);
         checkBoxCoinControlChange = new QCheckBox(frameCoinControl);
         checkBoxCoinControlChange->setObjectName(QString::fromUtf8("checkBoxCoinControlChange"));

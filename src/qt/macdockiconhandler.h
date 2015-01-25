@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <QMainWindow>
+
 QT_BEGIN_NAMESPACE
 class QMenu;
 class QIcon;
