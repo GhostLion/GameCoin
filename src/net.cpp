@@ -428,12 +428,6 @@ void AddressCurrentlyConnected(const CService& addr)
     addrman.Connected(addr);
 }
 
-
-
-
-
-
-
 CNode* FindNode(const CNetAddr& ip)
 {
     {
@@ -627,15 +621,6 @@ void CNode::copyStats(CNodeStats &stats)
     X(nMisbehavior);
 }
 #undef X
-
-
-
-
-
-
-
-
-
 
 void ThreadSocketHandler(void* parg)
 {
@@ -985,13 +970,6 @@ void ThreadSocketHandler2(void* parg)
 }
 
 
-
-
-
-
-
-
-
 #ifdef USE_UPNP
 void ThreadMapPort(void* parg)
 {
@@ -1149,7 +1127,7 @@ void MapPort()
 // The first name is used as information source for addrman.
 // The second name should resolve to a list of seed addresses.
 static const char *strDNSSeed[][2] = {
-    {"trmserver.no-ip.org", "trmserver.no-ip.org:11066"},
+    //{"trmserver.no-ip.org", "trmserver.no-ip.org"},
     //{"bytesized-vps.com", "dnsseed.bytesized-vps.com"},
     //{"xurious.com", "dnsseed.ltc.xurious.com"},
 };
@@ -1210,16 +1188,6 @@ void ThreadDNSAddressSeed2(void* parg)
 
     printf("%d addresses found from DNS seeds\n", found);
 }
-
-
-
-
-
-
-
-
-
-
 
 
 unsigned int pnSeed[] =
