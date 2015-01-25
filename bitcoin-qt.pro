@@ -3,7 +3,7 @@ TEMPLATE = app
 TARGET =
 VERSION = 1.0.0
 INCLUDEPATH +=src src/json src/qt
-DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE USE_IPV6 MAC_OSX MSG_NOSIGNAL=0
+DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE USE_IPV6 MAC_OSX MSG_NOSIGNAL=0 USE_QRCODE=1
 CONFIG += no_include_pwd qt
 OBJECTS_DIR = build
 MOC_DIR = build
@@ -11,10 +11,10 @@ UI_DIR = build
 INCLUDEPATH += /usr/local/opt/boost/include
 INCLUDEPATH += /usr/local/opt/berkeley-db4/include
 INCLUDEPATH += /usr/local/opt/berkeley-db/include
-LIBPATHS += -L /usr/local/opt/boost/lib
+LIBS += /usr/local/opt/miniupnpc/lib
+LIBS += $$PWD/src/leveldb/libleveldb.a $$PWD/src/leveldb/libmemenv.a
 LIBS= -dead_strip
 QT += widgets network core gui xml
-
 #CONFIG-=app_bundle
 #Windows
 #LIBS += -L"C:/Program Files (x86)/boost/boost_1_49/lib" -lboost_thread
@@ -28,9 +28,14 @@ macx:QMAKE_CFLAGS = -mmacosx-version-min=10.9 -O3 -arch x86_64
 
 
 
- # message(Building with QRCode support)
- # DEFINES += USE_QRCODE
- # LIBS += -lqrencode
+# use: qmake "USE_QRCODE=1"
+# libqrencode (http://fukuchi.org/works/qrencode/index.en.html) must be installed for support
+contains(USE_QRCODE, 1) {
+    message(Building with QRCode support)
+    DEFINES += USE_QRCODE
+    LIBS += -lqrencode
+}
+
 greaterThan(QT_MAJOR_VERSION, 4):QT +=widgets
 # use: qmake "USE_UPNP=1" ( enabled by default; default)
 #  or: qmake "USE_UPNP=0" (disabled by default)
@@ -44,7 +49,7 @@ contains(USE_UPNP, -) {
         USE_UPNP=1
     }
     DEFINES += USE_UPNP=$$USE_UPNP STATICLIB
-    INCLUDEPATH += $$MINIUPNPC_INCLUDE_PATH
+    INCLUDEPATH += /usr/local/opt/miniupnpc/lib
     LIBS += $$join(MINIUPNPC_LIB_PATH,,-L,) -lminiupnpc
     win32:LIBS += -liphlpapi
 }
@@ -85,7 +90,7 @@ contains(BITCOIN_NEED_QT_PLUGINS, 1) {
 }
 
 QMAKE_CXXFLAGS_WARN_ON = -w -Wextra -Wno-sign-compare -Wno-invalid-offsetof -Wformat-security
-
+#-fdiagnostics-show-option -Wall -Wformat -Wformat-security -Wno-unused-parameter -Wstack-protector
 # Input
 DEPENDPATH += src src/json src/qt
 HEADERS += src/qt/bitcoingui.h \
@@ -275,9 +280,6 @@ QT += testlib
 TARGET = bitcoin-qt_test
 DEFINES += BITCOIN_QT_TEST
 }
-
-CODECFORTR = UTF-8
-
 # for lrelease/lupdate
 # also add new translations to src/qt/bitcoin.qrc under translations/
 TRANSLATIONS = $$files(src/qt/locale/bitcoin_*.ts)
@@ -350,12 +352,17 @@ windows:!contains(MINGW_THREAD_BUGFIX, 0) {
     LIBS += -lrt
 }
 macx:QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
-macx:HEADERS += src/qt/macdockiconhandler.h
-macx:OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm
-macx:LIBS += -framework Foundation -framework ApplicationServices -framework AppKit
+macx:HEADERS += src/qt/macdockiconhandler.h src/qt/macnotificationhandler.h
+macx:OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm src/qt/macnotificationhandler.mm
+macx:LIBS += -framework Foundation -framework ApplicationServices -framework AppKit -framework CoreServices
 macx:DEFINES += MAC_OSX MSG_NOSIGNAL=0
-macx:ICON = src/qt/res/icons/bitcoin.icns
+macx:ICON = src/qt/res/icons/litecoin.icns
 macx:TARGET = "GameCoin-qt"
+macx:QMAKE_CFLAGS_THREAD += -pthread
+macx:QMAKE_LFLAGS_THREAD += -pthread
+macx:QMAKE_CXXFLAGS_THREAD += -pthread
+macx:QMAKE_INFO_PLIST = share/qt/Info.plist
+macx:LIBS += -lboost_chrono$$BOOST_LIB_SUFFIX
 # Set libraries and includes at end, to use platform-defined defaults if not overridden
 INCLUDEPATH += $$BOOST_INCLUDE_PATH $$BDB_INCLUDE_PATH $$OPENSSL_INCLUDE_PATH $$QRENCODE_INCLUDE_PATH
 LIBS += $$join(BOOST_LIB_PATH,,-L,) $$join(BDB_LIB_PATH,,-L,) $$join(OPENSSL_LIB_PATH,,-L,) $$join(QRENCODE_LIB_PATH,,-L,)
@@ -371,6 +378,6 @@ contains(RELEASE, 1) {
     }
 }
 
-system($$QMAKE_LRELEASE -silent $$_PRO_FILE_)
+system($$QMAKE_LRELEASE -silent $$TRANSLATIONS)
 
 
