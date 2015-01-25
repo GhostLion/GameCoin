@@ -13,14 +13,13 @@ INCLUDEPATH += /usr/local/opt/berkeley-db4/include
 INCLUDEPATH += /usr/local/opt/berkeley-db/include
 LIBPATHS += -L /usr/local/opt/boost/lib
 LIBS= -dead_strip
-
+#CONFIG-=app_bundle
 #Windows
 #LIBS += -L"C:/Program Files (x86)/boost/boost_1_49/lib" -lboost_thread
 # use: qmake "RELEASE=1"
 
-QMAKE_CFLAGS = -mmacosx-version-min=10.9 -O3
+macx:QMAKE_CFLAGS = -mmacosx-version-min=10.9 -O3 -arch x86_64
 QT += widgets
-QMAKE_CFLAGS += -arch x86_64
     !windows:!macx {
         # Linux: static link
         LIBS += -Wl,-Bstatic , -ldb_cxx-4.8 ,-lboost_system-mt , -lboost_filesystem-mt , -lboost_program_options-mt ,  -lboost_thread-mt ,-lssl ,-lcrypto ,-lz
@@ -28,13 +27,13 @@ QMAKE_CFLAGS += -arch x86_64
 
 
 
- #  message(Building with QRCode support)
+ # message(Building with QRCode support)
  # DEFINES += USE_QRCODE
  # LIBS += -lqrencode
 greaterThan(QT_MAJOR_VERSION, 4):QT +=widgets
 # use: qmake "USE_UPNP=1" ( enabled by default; default)
 #  or: qmake "USE_UPNP=0" (disabled by default)
-#  or: qmake "USE_UPNP=-" (not supported)
+#qmake "USE_UPNP=-" (not supported)
 # miniupnpc (http://miniupnp.free.fr/files/) must be installed for support
 contains(USE_UPNP, -) {
     message(Building without UPNP support)
@@ -83,7 +82,6 @@ contains(BITCOIN_NEED_QT_PLUGINS, 1) {
     QMAKE_EXTRA_TARGETS += genbuild
     DEFINES += HAVE_BUILD_INFO
 }
-DEFS=-DMAC_OSX -DMSG_NOSIGNAL=0 -DBOOST_SPIRIT_THREADSAFE -DUSE_IPV6
 
 QMAKE_CXXFLAGS_WARN_ON = -w -Wextra -Wno-sign-compare -Wno-invalid-offsetof -Wformat-security
 # Input
@@ -326,14 +324,14 @@ windows:!contains(MINGW_THREAD_BUGFIX, 0) {
     DEFINES += LINUX
     LIBS += -lrt
 }
-
+macx:QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
 macx:HEADERS += src/qt/macdockiconhandler.h
 macx:OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm
-macx:LIBS += -framework Foundation -framework ApplicationServices -framework AppKit -ldb_cxx-4.8  -lz  -lboost_system-mt -lminiupnpc  -lboost_filesystem-mt  -lboost_thread-mt  -lssl  -lcrypto
+macx:LIBS += -framework Foundation -framework ApplicationServices -framework AppKit
 macx:DEFINES += MAC_OSX MSG_NOSIGNAL=0
 macx:ICON = src/qt/res/icons/bitcoin.icns
-macx:TARGET = "gamecoin-qt"
-
+macx:TARGET = "GameCoin-qt"
+maccx:QMAKE_MAC_SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk
 # Set libraries and includes at end, to use platform-defined defaults if not overridden
 INCLUDEPATH += $$BOOST_INCLUDE_PATH $$BDB_INCLUDE_PATH $$OPENSSL_INCLUDE_PATH $$QRENCODE_INCLUDE_PATH
 LIBS += $$join(BOOST_LIB_PATH,,-L,) $$join(BDB_LIB_PATH,,-L,) $$join(OPENSSL_LIB_PATH,,-L,) $$join(QRENCODE_LIB_PATH,,-L,)
