@@ -4,7 +4,7 @@ TARGET =
 VERSION = 1.0.0
 INCLUDEPATH +=src src/json src/qt
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE USE_IPV6 MAC_OSX MSG_NOSIGNAL=0
-CONFIG += no_include_pwd
+CONFIG += no_include_pwd qt
 OBJECTS_DIR = build
 MOC_DIR = build
 UI_DIR = build
@@ -13,13 +13,14 @@ INCLUDEPATH += /usr/local/opt/berkeley-db4/include
 INCLUDEPATH += /usr/local/opt/berkeley-db/include
 LIBPATHS += -L /usr/local/opt/boost/lib
 LIBS= -dead_strip
+QT += widgets network core gui xml
+
 #CONFIG-=app_bundle
 #Windows
 #LIBS += -L"C:/Program Files (x86)/boost/boost_1_49/lib" -lboost_thread
 # use: qmake "RELEASE=1"
 
 macx:QMAKE_CFLAGS = -mmacosx-version-min=10.9 -O3 -arch x86_64
-QT += widgets network
     !windows:!macx {
         # Linux: static link
         LIBS += -Wl,-Bstatic , -ldb_cxx-4.8 ,-lboost_system-mt , -lboost_filesystem-mt , -lboost_program_options-mt ,  -lboost_thread-mt ,-lssl ,-lcrypto ,-lz
@@ -84,6 +85,7 @@ contains(BITCOIN_NEED_QT_PLUGINS, 1) {
 }
 
 QMAKE_CXXFLAGS_WARN_ON = -w -Wextra -Wno-sign-compare -Wno-invalid-offsetof -Wformat-security
+
 # Input
 DEPENDPATH += src src/json src/qt
 HEADERS += src/qt/bitcoingui.h \
@@ -263,7 +265,7 @@ HEADERS += src/qt/qrcodedialog.h
 SOURCES += src/qt/qrcodedialog.cpp
 FORMS += src/qt/forms/qrcodedialog.ui
 }
-
+macx: CONFIG -= app_bundle
 contains(BITCOIN_QT_TEST, 1) {
 SOURCES += src/qt/test/test_main.cpp \
     src/qt/test/uritests.cpp
@@ -354,7 +356,6 @@ macx:LIBS += -framework Foundation -framework ApplicationServices -framework App
 macx:DEFINES += MAC_OSX MSG_NOSIGNAL=0
 macx:ICON = src/qt/res/icons/bitcoin.icns
 macx:TARGET = "GameCoin-qt"
-macx:QMAKE_MAC_SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk
 # Set libraries and includes at end, to use platform-defined defaults if not overridden
 INCLUDEPATH += $$BOOST_INCLUDE_PATH $$BDB_INCLUDE_PATH $$OPENSSL_INCLUDE_PATH $$QRENCODE_INCLUDE_PATH
 LIBS += $$join(BOOST_LIB_PATH,,-L,) $$join(BDB_LIB_PATH,,-L,) $$join(OPENSSL_LIB_PATH,,-L,) $$join(QRENCODE_LIB_PATH,,-L,)
