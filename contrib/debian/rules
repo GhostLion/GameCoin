@@ -5,29 +5,29 @@
 #build/bitcoind::
 #	$(if $(filter nocheck,$(DEB_BUILD_OPTIONS)),,src/test_bitcoin)
 
-DEB_INSTALL_EXAMPLES_bitcoind += debian/examples/*
-DEB_INSTALL_MANPAGES_bitcoind += debian/manpages/*
+DEB_INSTALL_EXAMPLES_gamecoind += debian/examples/*
+DEB_INSTALL_MANPAGES_gamecoind += debian/manpages/*
 
 %:
 	dh --with bash-completion $@
 
 override_dh_auto_build:
-	cd src; $(MAKE) -f makefile.unix bitcoind
+	cd src; $(MAKE) -f makefile.unix gamecoind
 	$(MAKE)
 
 override_dh_auto_clean:
-	if [ -f Makefile ]; then $(MAKE) clean; else rm -rf build/; rm -f bitcoin-qt; fi
+	if [ -f Makefile ]; then $(MAKE) clean; else rm -rf build/; rm -f gamecoin-qt; fi
 	cd src; $(MAKE) -f makefile.unix clean
 
 override_dh_auto_configure:
-	qmake bitcoin-qt.pro USE_QRCODE=1
+	qmake gamecoin-qt.pro USE_QRCODE=1
 
 override_dh_auto_test:
-	cd src; $(MAKE) -f makefile.unix test_bitcoin
-	src/test_bitcoin
+	cd src; $(MAKE) -f makefile.unix test_gamecoin
+	src/test_gamecoin
 
 # Ensure wrapper is set executable
-binary-post-install/bitcoind:
-	chmod +x $(cdbs_curdestdir)usr/bin/bitcoind
-binary-post-install/bitcoin-qt:
-	chmod +x $(cdbs_curdestdir)usr/bin/bitcoin-qt
+binary-post-install/gamecoind:
+	chmod +x $(cdbs_curdestdir)usr/bin/gamecoind
+binary-post-install/gamecoin-qt:
+	chmod +x $(cdbs_curdestdir)usr/bin/gamecoin-qt

@@ -15,8 +15,8 @@
 #ifndef STORAGE_LEVELDB_INCLUDE_ITERATOR_H_
 #define STORAGE_LEVELDB_INCLUDE_ITERATOR_H_
 
-#include "leveldb/include/leveldb/slice.h"
-#include "leveldb/include/leveldb/status.h"
+#include "leveldb/slice.h"
+#include "leveldb/status.h"
 
 namespace leveldb {
 
@@ -61,7 +61,7 @@ class Iterator {
   // Return the value for the current entry.  The underlying storage for
   // the returned slice is valid only until the next modification of
   // the iterator.
-  // REQUIRES: !AtEnd() && !AtStart()
+  // REQUIRES: Valid()
   virtual Slice value() const = 0;
 
   // If an error has occurred, return it.  Else return an ok status.

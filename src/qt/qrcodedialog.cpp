@@ -2,19 +2,18 @@
 #include "ui_qrcodedialog.h"
 
 #include "bitcoinunits.h"
+#include "dialogwindowflags.h"
 #include "guiconstants.h"
 #include "guiutil.h"
 #include "optionsmodel.h"
 
 #include <QPixmap>
-#if QT_VERSION < 0x050000
 #include <QUrl>
-#endif
 
 #include <qrencode.h>
 
 QRCodeDialog::QRCodeDialog(const QString &addr, const QString &label, bool enableReq, QWidget *parent) :
-    QDialog(parent),
+    QDialog(parent, DIALOGWINDOWHINTS),
     ui(new Ui::QRCodeDialog),
     model(0),
     address(addr)

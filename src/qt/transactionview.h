@@ -1,7 +1,3 @@
-// Copyright (c) 2011-2013 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
 #ifndef TRANSACTIONVIEW_H
 #define TRANSACTIONVIEW_H
 
@@ -15,6 +11,7 @@ class QTableView;
 class QComboBox;
 class QLineEdit;
 class QModelIndex;
+class QSignalMapper;
 class QMenu;
 class QFrame;
 class QDateTimeEdit;
@@ -26,11 +23,10 @@ QT_END_NAMESPACE
 class TransactionView : public QWidget
 {
     Q_OBJECT
-
 public:
     explicit TransactionView(QWidget *parent = 0);
 
-    void setModel(WalletModel *model);
+    void setModel(WalletModel *model, bool fShoudAddThirdPartyURL = true);
 
     // Date ranges for filter
     enum DateEnum
@@ -55,6 +51,7 @@ private:
     QLineEdit *amountWidget;
 
     QMenu *contextMenu;
+    QSignalMapper *mapperThirdPartyTxUrls;
 
     QFrame *dateRangeWidget;
     QDateTimeEdit *dateFrom;
@@ -71,6 +68,8 @@ private slots:
     void copyLabel();
     void copyAmount();
     void copyTxID();
+    void clearOrphans();
+    void openThirdPartyTxUrl(QString url);
 
 signals:
     void doubleClicked(const QModelIndex&);

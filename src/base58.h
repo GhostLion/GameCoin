@@ -17,11 +17,9 @@
 
 #include <string>
 #include <vector>
-
 #include "bignum.h"
 #include "key.h"
 #include "script.h"
-#include "allocators.h"
 
 static const char* pszBase58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
@@ -53,7 +51,7 @@ inline std::string EncodeBase58(const unsigned char* pbegin, const unsigned char
         if (!BN_div(&dv, &rem, &bn, &bn58, pctx))
             throw bignum_error("EncodeBase58 : BN_div failed");
         bn = dv;
-        unsigned int c = rem.getulong();
+        unsigned int c = rem.getuint32();
         str += pszBase58[c];
     }
 
@@ -96,7 +94,7 @@ inline bool DecodeBase58(const char* psz, std::vector<unsigned char>& vchRet)
                 return false;
             break;
         }
-        bnChar.setulong(p1 - pszBase58);
+        bnChar.setuint32(p1 - pszBase58);
         if (!BN_mul(&bn, &bn, &bn58, pctx))
             throw bignum_error("DecodeBase58 : BN_mul failed");
         bn += bnChar;
@@ -180,13 +178,19 @@ protected:
     unsigned char nVersion;
 
     // the actually encoded data
-    typedef std::vector<unsigned char, zero_after_free_allocator<unsigned char> > vector_uchar;
-    vector_uchar vchData;
+    std::vector<unsigned char> vchData;
 
     CBase58Data()
     {
         nVersion = 0;
         vchData.clear();
+    }
+
+    ~CBase58Data()
+    {
+        // zero the memory, as it may contain sensitive data
+        if (!vchData.empty())
+            memset(&vchData[0], 0, vchData.size());
     }
 
     void SetData(int nVersionIn, const void* pdata, size_t nSize)
@@ -217,7 +221,7 @@ public:
         vchData.resize(vchTemp.size() - 1);
         if (!vchData.empty())
             memcpy(&vchData[0], &vchTemp[1], vchData.size());
-        OPENSSL_cleanse(&vchTemp[0], vchData.size());
+        memset(&vchTemp[0], 0, vchTemp.size());
         return true;
     }
 
@@ -272,8 +276,8 @@ class CBitcoinAddress : public CBase58Data
 public:
     enum
     {
-        PUBKEY_ADDRESS = 38, // Gamecoin addresses start with L
-        SCRIPT_ADDRESS = 5,
+        PUBKEY_ADDRESS = 8,
+        SCRIPT_ADDRESS = 20,
         PUBKEY_ADDRESS_TEST = 111,
         SCRIPT_ADDRESS_TEST = 196,
     };
@@ -398,25 +402,21 @@ bool inline CBitcoinAddressVisitor::operator()(const CNoDestination &id) const {
 class CBitcoinSecret : public CBase58Data
 {
 public:
-    enum
+    void SetSecret(const CSecret& vchSecret, bool fCompressed)
     {
-        PRIVKEY_ADDRESS = CBitcoinAddress::PUBKEY_ADDRESS + 128,
-        PRIVKEY_ADDRESS_TEST = CBitcoinAddress::PUBKEY_ADDRESS_TEST + 128,
-    };
-
-    void SetKey(const CKey& vchSecret)
-    {
-        assert(vchSecret.IsValid());
-        SetData(fTestNet ? PRIVKEY_ADDRESS_TEST : PRIVKEY_ADDRESS, vchSecret.begin(), vchSecret.size());
-        if (vchSecret.IsCompressed())
+        assert(vchSecret.size() == 32);
+        SetData(128 + (fTestNet ? CBitcoinAddress::PUBKEY_ADDRESS_TEST : CBitcoinAddress::PUBKEY_ADDRESS), &vchSecret[0], vchSecret.size());
+        if (fCompressed)
             vchData.push_back(1);
     }
 
-    CKey GetKey()
+    CSecret GetSecret(bool &fCompressedOut)
     {
-        CKey ret;
-        ret.Set(&vchData[0], &vchData[32], vchData.size() > 32 && vchData[32] == 1);
-        return ret;
+        CSecret vchSecret;
+        vchSecret.resize(32);
+        memcpy(&vchSecret[0], &vchData[0], 32);
+        fCompressedOut = vchData.size() == 33;
+        return vchSecret;
     }
 
     bool IsValid() const
@@ -424,10 +424,10 @@ public:
         bool fExpectTestNet = false;
         switch(nVersion)
         {
-            case PRIVKEY_ADDRESS:
+            case (128 + CBitcoinAddress::PUBKEY_ADDRESS):
                 break;
 
-            case PRIVKEY_ADDRESS_TEST:
+            case (128 + CBitcoinAddress::PUBKEY_ADDRESS_TEST):
                 fExpectTestNet = true;
                 break;
 
@@ -447,9 +447,9 @@ public:
         return SetString(strSecret.c_str());
     }
 
-    CBitcoinSecret(const CKey& vchSecret)
+    CBitcoinSecret(const CSecret& vchSecret, bool fCompressed)
     {
-        SetKey(vchSecret);
+        SetSecret(vchSecret, fCompressed);
     }
 
     CBitcoinSecret()
@@ -457,4 +457,4 @@ public:
     }
 };
 
-#endif // BITCOIN_BASE58_H
+#endif

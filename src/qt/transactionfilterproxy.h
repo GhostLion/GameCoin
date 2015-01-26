@@ -1,7 +1,3 @@
-// Copyright (c) 2011-2013 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
 #ifndef TRANSACTIONFILTERPROXY_H
 #define TRANSACTIONFILTERPROXY_H
 
@@ -12,7 +8,6 @@
 class TransactionFilterProxy : public QSortFilterProxyModel
 {
     Q_OBJECT
-
 public:
     explicit TransactionFilterProxy(QObject *parent = 0);
 
@@ -37,7 +32,6 @@ public:
     void setLimit(int limit);
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
-
 protected:
     bool filterAcceptsRow(int source_row, const QModelIndex & source_parent) const;
 
@@ -48,6 +42,11 @@ private:
     quint32 typeFilter;
     qint64 minAmount;
     int limitRows;
+
+signals:
+
+public slots:
+
 };
 
 #endif // TRANSACTIONFILTERPROXY_H

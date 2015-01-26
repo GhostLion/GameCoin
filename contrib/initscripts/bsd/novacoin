@@ -1,0 +1,68 @@
+#!/bin/sh
+
+# PROVIDE: gamecoin
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+
+#
+# Add the following lines to /etc/rc.conf.local or /etc/rc.conf
+# to enable this service:
+#
+# gamecoin_enable (bool): Set to NO by default. Set this variable to YES if you want to enable gamecoin service.
+# gamecoin_config (path): Set to /usr/local/etc/gamecoin.conf by default.
+# gamecoin_user:  The user account gamecoin daemon runs as. It uses 'root' user by default.
+# gamecoin_group: The group account gamecoin daemon runs as. It uses 'wheel' group by default.
+# gamecoin_datadir (str): Default to "/var/db/gamecoin". Base data directory.
+
+. /etc/rc.subr
+
+name=gamecoin
+rcvar=gamecoin_enable
+
+: ${gamecoin_enable:=NO}
+: ${gamecoin_config=/usr/local/etc/gamecoin.conf}
+: ${gamecoin_datadir=/var/db/gamecoin}
+: ${gamecoin_user="root"}
+: ${gamecoin_group="wheel"}
+
+required_files=${gamecoin_config}
+command=/usr/local/bin/gamecoind
+gamecoin_chdir=${gamecoin_datadir}
+pidfile="${gamecoin_datadir}/gamecoind.pid"
+stop_cmd=gamecoin_stop
+command_args="-conf=${gamecoin_config} -datadir=${gamecoin_datadir} -noupnp -daemon -pid=${pidfile}"
+start_precmd="${name}_prestart"
+
+gamecoin_create_datadir()
+{
+	echo "Creating data directory"
+	eval mkdir -p ${gamecoin_datadir}
+	[ $? -eq 0 ] && chown -R ${gamecoin_user}:${gamecoin_group} ${gamecoin_datadir}
+}
+
+gamecoin_prestart()
+{
+	if [ ! -d "${gamecoin_datadir}/." ]; then
+		gamecoin_create_datadir || return 1
+	fi
+}
+
+gamecoin_requirepidfile()
+{
+	if [ ! "0`check_pidfile ${pidfile} ${command}`" -gt 1 ]; then
+		echo "${name} not running? (check $pidfile)."
+		exit 1
+	fi
+}
+
+gamecoin_stop()
+{
+    gamecoin_requirepidfile
+
+	echo "Stopping ${name}."
+	eval ${command} -conf=${gamecoin_config} -datadir=${gamecoin_datadir} stop
+	wait_for_pids ${rc_pid}
+}
+
+load_rc_config $name
+run_rc_command "$1"

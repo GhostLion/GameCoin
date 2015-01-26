@@ -1,4 +1,4 @@
-Litecoin-Qt: Qt4 GUI for Litecoin
+Gamecoin-qt: Qt4 GUI for Gamecoin
 ===============================
 
 Build instructions
@@ -18,7 +18,7 @@ for Debian and Ubuntu  <= 11.10 :
 
     apt-get install qt4-qmake libqt4-dev build-essential libboost-dev libboost-system-dev \
         libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev \
-        libssl-dev libdb4.8++-dev libminiupnpc-dev
+        libssl-dev libdb4.8++-dev
 
 for Ubuntu >= 12.04 (please read the 'Berkely DB version warning' below):
 
@@ -28,12 +28,6 @@ for Ubuntu >= 12.04 (please read the 'Berkely DB version warning' below):
         libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev \
         libssl-dev libdb++-dev libminiupnpc-dev
 
-For Qt 5 you need the following, otherwise you get an error with lrelease when running qmake:
-
-::
-
-    apt-get install qt5-qmake libqt5gui5 libqt5core5 libqt5dbus5 qttools5-dev-tools
-
 then execute the following:
 
 ::
@@ -41,51 +35,93 @@ then execute the following:
     qmake
     make
 
-Alternatively, install `Qt Creator`_ and open the `litecoin-qt.pro` file.
+Alternatively, install Qt Creator and open the `gamecoin-qt.pro` file.
 
-An executable named `litecoin-qt` will be built.
+An executable named `gamecoin-qt` will be built.
 
-.. _`Qt Creator`: http://qt-project.org/downloads/
+
+Windows
+--------
+
+Windows build instructions:
+
+- Download the `QT Windows SDK`_ and install it. You don't need the Symbian stuff, just the desktop Qt.
+
+- Download and extract the `dependencies archive`_  [#]_, or compile openssl, boost and dbcxx yourself.
+
+- Copy the contents of the folder "deps" to "X:\\QtSDK\\mingw", replace X:\\ with the location where you installed the Qt SDK. Make sure that the contents of "deps\\include" end up in the current "include" directory.
+
+- Open the .pro file in QT creator and build as normal (ctrl-B)
+
+.. _`QT Windows SDK`: http://qt.nokia.com/downloads/sdk-windows-cpp
+.. _`dependencies archive`: https://download.visucore.com/bitcoin/qtgui_deps_1.zip
+.. [#] PGP signature: https://download.visucore.com/bitcoin/qtgui_deps_1.zip.sig (signed with RSA key ID `610945D0`_)
+.. _`610945D0`: http://pgp.mit.edu:11371/pks/lookup?op=get&search=0x610945D0
+
 
 Mac OS X
 --------
 
 - Download and install the `Qt Mac OS X SDK`_. It is recommended to also install Apple's Xcode with UNIX tools.
 
-- Download and install either `MacPorts`_ or `HomeBrew`_.
+- Download and install `MacPorts`_.
 
-- Execute the following commands in a terminal to get the dependencies using MacPorts:
+- Execute the following commands in a terminal to get the dependencies:
 
 ::
 
 	sudo port selfupdate
 	sudo port install boost db48 miniupnpc
 
-- Execute the following commands in a terminal to get the dependencies using HomeBrew:
+- Open the .pro file in Qt Creator and build as normal (cmd-B)
 
-::
-
-	brew update
-	brew install boost miniupnpc openssl berkeley-db4
-
-- If using HomeBrew,  edit `litecoin-qt.pro` to account for library location differences. There's a diff in `contrib/homebrew/bitcoin-qt-pro.patch` that shows what you need to change, or you can just patch by doing
-
-        patch -p1 < contrib/homebrew/bitcoin.qt.pro.patch
-
-- Open the litecoin-qt.pro file in Qt Creator and build as normal (cmd-B)
-
-.. _`Qt Mac OS X SDK`: http://qt-project.org/downloads/
+.. _`Qt Mac OS X SDK`: http://qt.nokia.com/downloads/sdk-mac-os-cpp
 .. _`MacPorts`: http://www.macports.org/install.php
-.. _`HomeBrew`: http://mxcl.github.io/homebrew/
 
 
 Build configuration options
 ============================
 
-UPnP port forwarding
+LevelDB transaction index
+--------------------------
+
+To use LevelDB for transaction index, pass the following argument to qmake:
+
+::
+
+    qmake "USE_LEVELDB=1"
+
+No additional external dependencies are required. If you're running this on your current sources tree then don't forget to run
+
+::
+
+    make distclean
+
+prior to running qmake.
+
+Assembler implementation of scrypt hashing
+------------------------------------------
+
+To use optimized scrypt implementation instead of generic scrypt module, pass the following argument to qmake:
+
+::
+
+    qmake "USE_ASM=1"
+
+
+If you're using clang compiler then you need to unroll macroses before compiling. Following commands will do this for you:
+
+::
+
+    cd src/
+    ../contrib/clang/nomacro.pl
+
+No additional external dependencies required. Note that only x86, x86_64 and ARM processors are supported.
+
+UPNnP port forwarding
 ---------------------
 
-To use UPnP for port forwarding behind a NAT router (recommended, as more connections overall allow for a faster and more stable litecoin experience), pass the following argument to qmake:
+To use UPnP for port forwarding behind a NAT router (recommended, as more connections overall allow for a faster and more stable gamecoin experience), pass the following argument to qmake:
 
 ::
 
@@ -119,8 +155,8 @@ FreeDesktop notification interface through DBUS using the following qmake option
 Generation of QR codes
 -----------------------
 
-libqrencode may be used to generate QRCode images for payment requests.
-It can be downloaded from http://fukuchi.org/works/qrencode/index.html.en, or installed via your package manager. Pass the USE_QRCODE
+libqrencode may be used to generate QRCode images for payment requests. 
+It can be downloaded from http://fukuchi.org/works/qrencode/index.html.en, or installed via your package manager. Pass the USE_QRCODE 
 flag to qmake to control this:
 
 +--------------+--------------------------------------------------------------------------+
@@ -133,24 +169,20 @@ flag to qmake to control this:
 Berkely DB version warning
 ==========================
 
-A warning for people using the *static binary* version of Litecoin on a Linux/UNIX-ish system (tl;dr: **Berkely DB databases are not forward compatible**).
+A warning for people using the *static binary* version of Gamecoin on a Linux/UNIX-ish system (tl;dr: **Berkely DB databases are not forward compatible**).
 
-The static binary version of Litecoin is linked against libdb4.8 (see also `this Debian issue`_).
+The static binary version of Gamecoin is linked against libdb5.3.
 
-Now the nasty thing is that databases from 5.X are not compatible with 4.X.
-
-If the globally installed development package of Berkely DB installed on your system is 5.X, any source you
+If the globally installed development package of Berkely DB installed on your system is 5.X, for example, any source you
 build yourself will be linked against that. The first time you run with a 5.X version the database will be upgraded,
 and 4.X cannot open the new format. This means that you cannot go back to the old statically linked version without
 significant hassle!
-
-.. _`this Debian issue`: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=621425
 
 Ubuntu 11.10 warning
 ====================
 
 Ubuntu 11.10 has a package called 'qt-at-spi' installed by default.  At the time of writing, having that package
-installed causes litecoin-qt to crash intermittently.  The issue has been reported as `launchpad bug 857790`_, but
+installed causes gamecoin-qt to crash intermittently.  The issue has been reported as `launchpad bug 857790`_, but
 isn't yet fixed.
 
 Until the bug is fixed, you can remove the qt-at-spi package to work around the problem, though this will presumably

@@ -1,23 +1,18 @@
-// Copyright (c) 2011-2013 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
 #ifndef OVERVIEWPAGE_H
 #define OVERVIEWPAGE_H
 
 #include <QWidget>
 
-namespace Ui {
-    class OverviewPage;
-}
-class ClientModel;
-class WalletModel;
-class TxViewDelegate;
-class TransactionFilterProxy;
-
 QT_BEGIN_NAMESPACE
 class QModelIndex;
 QT_END_NAMESPACE
+
+namespace Ui {
+    class OverviewPage;
+}
+class WalletModel;
+class TxViewDelegate;
+class TransactionFilterProxy;
 
 /** Overview ("home") page widget */
 class OverviewPage : public QWidget
@@ -28,21 +23,22 @@ public:
     explicit OverviewPage(QWidget *parent = 0);
     ~OverviewPage();
 
-    void setClientModel(ClientModel *clientModel);
-    void setWalletModel(WalletModel *walletModel);
+    void setModel(WalletModel *model);
     void showOutOfSyncWarning(bool fShow);
 
 public slots:
-    void setBalance(qint64 balance, qint64 unconfirmedBalance, qint64 immatureBalance);
+    void setBalance(qint64 total, qint64 watchOnly, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
+    void setNumTransactions(int count);
 
 signals:
     void transactionClicked(const QModelIndex &index);
 
 private:
     Ui::OverviewPage *ui;
-    ClientModel *clientModel;
-    WalletModel *walletModel;
-    qint64 currentBalance;
+    WalletModel *model;
+    qint64 currentBalanceTotal;
+    qint64 currentBalanceWatchOnly;
+    qint64 currentStake;
     qint64 currentUnconfirmedBalance;
     qint64 currentImmatureBalance;
 
@@ -52,7 +48,7 @@ private:
 private slots:
     void updateDisplayUnit();
     void handleTransactionClicked(const QModelIndex &index);
-    void updateAlerts(const QString &warnings);
+    void updateWatchOnlyLabels(bool showWatchOnly);
 };
 
 #endif // OVERVIEWPAGE_H

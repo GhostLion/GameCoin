@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=GameCoin
+Comment=GameCoin P2P Cryptocurrency
+Comment[fr]=GameCoin, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=GameCoin, eşten eşe kriptografik sanal para birimi
+Exec=/usr/bin/gamecoin-qt
+Terminal=false
+Type=Application
+Icon=/usr/share/pixmaps/bitcoin80.xpm
+MimeType=x-scheme-handler/gamecoin;
+Categories=Office;

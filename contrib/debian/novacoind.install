@@ -1,0 +1,2 @@
+debian/bin/gamecoind usr/bin
+src/gamecoind usr/lib/gamecoin

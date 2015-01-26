@@ -1,7 +1,3 @@
-// Copyright (c) 2011-2013 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
 #ifndef OPTIONSDIALOG_H
 #define OPTIONSDIALOG_H
 
@@ -40,26 +36,32 @@ private slots:
     void disableSaveButtons();
     /* set apply button and OK button state (enabled / disabled) */
     void setSaveButtonState(bool fState);
-    void on_resetButton_clicked();
     void on_okButton_clicked();
     void on_cancelButton_clicked();
     void on_applyButton_clicked();
 
     void showRestartWarning_Proxy();
+    void showRestartWarning_Tor();
     void showRestartWarning_Lang();
+    void showRestartWarning_URL();
     void updateDisplayUnit();
     void handleProxyIpValid(QValidatedLineEdit *object, bool fState);
+    void handleTorIpValid(QValidatedLineEdit *object, bool fState);
 
 signals:
     void proxyIpValid(QValidatedLineEdit *object, bool fValid);
+    void torIpValid(QValidatedLineEdit *object, bool fValid);
 
 private:
     Ui::OptionsDialog *ui;
     OptionsModel *model;
     MonitoredDataMapper *mapper;
     bool fRestartWarningDisplayed_Proxy;
+    bool fRestartWarningDisplayed_Tor;
     bool fRestartWarningDisplayed_Lang;
+    bool fRestartWarningDisplayed_URL;
     bool fProxyIpValid;
+    bool fTorIpValid;
 };
 
 #endif // OPTIONSDIALOG_H

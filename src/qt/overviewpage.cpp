@@ -1,11 +1,6 @@
-// Copyright (c) 2011-2013 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
 #include "overviewpage.h"
 #include "ui_overviewpage.h"
 
-#include "clientmodel.h"
 #include "walletmodel.h"
 #include "bitcoinunits.h"
 #include "optionsmodel.h"
@@ -50,10 +45,13 @@ public:
         bool confirmed = index.data(TransactionTableModel::ConfirmedRole).toBool();
         QVariant value = index.data(Qt::ForegroundRole);
         QColor foreground = option.palette.color(QPalette::Text);
-        if(value.canConvert<QBrush>())
+#if QT_VERSION < 0x050000
+        if(qVariantCanConvert<QColor>(value))
+#else
+        if(value.canConvert(QMetaType::QColor))
+#endif
         {
-            QBrush brush = qvariant_cast<QBrush>(value);
-            foreground = brush.color();
+            foreground = qvariant_cast<QColor>(value);
         }
 
         painter->setPen(foreground);
@@ -98,9 +96,9 @@ public:
 OverviewPage::OverviewPage(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::OverviewPage),
-    clientModel(0),
-    walletModel(0),
-    currentBalance(-1),
+    currentBalanceTotal(-1),
+    currentBalanceWatchOnly(0),
+    currentStake(0),
     currentUnconfirmedBalance(-1),
     currentImmatureBalance(-1),
     txdelegate(new TxViewDelegate()),
@@ -135,13 +133,17 @@ OverviewPage::~OverviewPage()
     delete ui;
 }
 
-void OverviewPage::setBalance(qint64 balance, qint64 unconfirmedBalance, qint64 immatureBalance)
+void OverviewPage::setBalance(qint64 total, qint64 watchOnly, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance)
 {
-    int unit = walletModel->getOptionsModel()->getDisplayUnit();
-    currentBalance = balance;
+    int unit = model->getOptionsModel()->getDisplayUnit();
+    currentBalanceTotal = total;
+    currentBalanceWatchOnly = watchOnly;
+    currentStake = stake;
     currentUnconfirmedBalance = unconfirmedBalance;
     currentImmatureBalance = immatureBalance;
-    ui->labelBalance->setText(BitcoinUnits::formatWithUnit(unit, balance));
+    ui->labelBalanceTotal->setText(BitcoinUnits::formatWithUnit(unit, total));
+    ui->labelBalanceWatchOnly->setText(BitcoinUnits::formatWithUnit(unit, watchOnly));
+    ui->labelStake->setText(BitcoinUnits::formatWithUnit(unit, stake));
     ui->labelUnconfirmed->setText(BitcoinUnits::formatWithUnit(unit, unconfirmedBalance));
     ui->labelImmature->setText(BitcoinUnits::formatWithUnit(unit, immatureBalance));
 
@@ -150,22 +152,30 @@ void OverviewPage::setBalance(qint64 balance, qint64 unconfirmedBalance, qint64 
     bool showImmature = immatureBalance != 0;
     ui->labelImmature->setVisible(showImmature);
     ui->labelImmatureText->setVisible(showImmature);
+
+    // only show watch-only balance if it's non-zero, so as not to complicate things
+    // for users
+    bool showWatchOnly = watchOnly != 0;
+    ui->labelBalanceWatchOnly->setVisible(showWatchOnly);
+    ui->labelBalanceWatchOnlyText->setVisible(showWatchOnly);
+   
 }
 
-void OverviewPage::setClientModel(ClientModel *model)
+// show/hide watch-only labels
+void OverviewPage::updateWatchOnlyLabels(bool showWatchOnly)
 {
-    this->clientModel = model;
-    if(model)
-    {
-        // Show warning if this is a prerelease version
-        connect(model, SIGNAL(alertsChanged(QString)), this, SLOT(updateAlerts(QString)));
-        updateAlerts(model->getStatusBarWarnings());
-    }
+    ui->labelBalanceWatchOnly->setVisible(showWatchOnly);
+    ui->labelBalanceWatchOnlyText->setVisible(showWatchOnly);
 }
 
-void OverviewPage::setWalletModel(WalletModel *model)
+void OverviewPage::setNumTransactions(int count)
 {
-    this->walletModel = model;
+    ui->labelNumTransactions->setText(QLocale::system().toString(count));
+}
+
+void OverviewPage::setModel(WalletModel *model)
+{
+    this->model = model;
     if(model && model->getOptionsModel())
     {
         // Set up transaction list
@@ -173,17 +183,24 @@ void OverviewPage::setWalletModel(WalletModel *model)
         filter->setSourceModel(model->getTransactionTableModel());
         filter->setLimit(NUM_ITEMS);
         filter->setDynamicSortFilter(true);
-        filter->setSortRole(Qt::EditRole);
+//        filter->setSortRole(Qt::EditRole);
+        filter->setSortRole(TransactionTableModel::DateRole);
         filter->sort(TransactionTableModel::Status, Qt::DescendingOrder);
 
         ui->listTransactions->setModel(filter);
         ui->listTransactions->setModelColumn(TransactionTableModel::ToAddress);
 
         // Keep up to date with wallet
-        setBalance(model->getBalance(), model->getUnconfirmedBalance(), model->getImmatureBalance());
-        connect(model, SIGNAL(balanceChanged(qint64, qint64, qint64)), this, SLOT(setBalance(qint64, qint64, qint64)));
+        setBalance(model->getBalance(), model->getBalanceWatchOnly(), model->getStake(), model->getUnconfirmedBalance(), model->getImmatureBalance());
+        connect(model, SIGNAL(balanceChanged(qint64, qint64, qint64, qint64, qint64)), this, SLOT(setBalance(qint64, qint64, qint64, qint64, qint64)));
+
+        setNumTransactions(model->getNumTransactions());
+        connect(model, SIGNAL(numTransactionsChanged(int)), this, SLOT(setNumTransactions(int)));
 
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
+
+        updateWatchOnlyLabels(model->haveWatchOnly());
+        connect(model, SIGNAL(notifyWatchonlyChanged(bool)), this, SLOT(updateWatchOnlyLabels(bool)));
     }
 
     // update the display unit, to not use the default ("BTC")
@@ -192,22 +209,16 @@ void OverviewPage::setWalletModel(WalletModel *model)
 
 void OverviewPage::updateDisplayUnit()
 {
-    if(walletModel && walletModel->getOptionsModel())
+    if(model && model->getOptionsModel())
     {
-        if(currentBalance != -1)
-            setBalance(currentBalance, currentUnconfirmedBalance, currentImmatureBalance);
+        if(currentBalanceTotal != -1)
+            setBalance(currentBalanceTotal, currentBalanceWatchOnly, model->getStake(), currentUnconfirmedBalance, currentImmatureBalance);
 
         // Update txdelegate->unit with the current unit
-        txdelegate->unit = walletModel->getOptionsModel()->getDisplayUnit();
+        txdelegate->unit = model->getOptionsModel()->getDisplayUnit();
 
         ui->listTransactions->update();
     }
-}
-
-void OverviewPage::updateAlerts(const QString &warnings)
-{
-    this->ui->labelAlerts->setVisible(!warnings.isEmpty());
-    this->ui->labelAlerts->setText(warnings);
 }
 
 void OverviewPage::showOutOfSyncWarning(bool fShow)
