@@ -1,44 +1,37 @@
-# -*- mode: Makefile; -*-
-# Copyright (c) 2011 Bitcoin Developers
-# Distributed under the MIT/X11 software license, see the accompanying
-# file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
-# Mac OS X makefile for bitcoin
-# Originally by Laszlo Hanyecz (solar@heliacal.net)
-
 CXX=llvm-g++
-DEPSDIR=/opt/local
+BREWDIR=/usr/local
 
-INCLUDEPATHS= \
+
+# ppc doesn't work because we don't suppINCLUDEPATHS= \
  -I"$(CURDIR)" \
- -I"$(CURDIR)"/obj \
- -I"$(DEPSDIR)/include" \
- -I"$(DEPSDIR)/include/db48"
+ -I"$(CURDIR)/obj" \
+ -I"$(BREWDIR)/opt/berkeley-db4/include" \
+ -I"$(BREWDIR)/opt/boost/include"
 
 LIBPATHS= \
  -L"$(DEPSDIR)/lib" \
- -L"$(DEPSDIR)/lib/db48"
+ -L"$(BREWDIR)/opt/berkeley-db4/lib" \
+ -L"$(BREWDIR)/opt/boost/lib" 
 
 USE_UPNP:=1
-USE_IPV6:=1
 
 LIBS= -dead_strip
 
 TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
 
 ifdef STATIC
-# Build STATIC if you are redistributing the bitcoind binary
+# Build STATIC if you are redistributing the ppcoind binary
 TESTLIBS += \
  $(DEPSDIR)/lib/libboost_unit_test_framework-mt.a
 LIBS += \
- $(DEPSDIR)/lib/db48/libdb_cxx-4.8.a \
- $(DEPSDIR)/lib/libboost_system-mt.a \
- $(DEPSDIR)/lib/libboost_filesystem-mt.a \
- $(DEPSDIR)/lib/libboost_program_options-mt.a \
- $(DEPSDIR)/lib/libboost_thread-mt.a \
- $(DEPSDIR)/lib/libboost_chrono-mt.a \
- $(DEPSDIR)/lib/libssl.a \
- $(DEPSDIR)/lib/libcrypto.a \
+ $(BREWDIR)/opt/lib/db48/libdb_cxx-4.8.a \
+ $(BREWDIR)/lib/libboost_system-mt.a \
+ $(BREWDIR)/lib/libboost_filesystem-mt.a \
+ $(BREWDIR)/lib/libboost_program_options-mt.a \
+ $(BREWDIR)/lib/libboost_thread-mt.a \
+ $(BREWDIR)/lib/libboost_chrono-mt.a \
+ $(BREWDIR)/lib/libssl.a \
+ $(BREWDIR)/lib/libcrypto.a \
  -lz
 else
 TESTLIBS += \
@@ -56,26 +49,19 @@ LIBS += \
 TESTDEFS += -DBOOST_TEST_DYN_LINK
 endif
 
-DEFS=-DMAC_OSX -DMSG_NOSIGNAL=0 -DBOOST_SPIRIT_THREADSAFE
+DEFS=-DMAC_OSX -DMSG_NOSIGNAL=0 -DBOOST_SPIRIT_THREADSAFE -DUSE_IPV6
 
-ifdef RELEASE
-# Compile for maximum compatibility and smallest size.
-# This requires that dependencies are compiled
-# the same way.
-CFLAGS = -mmacosx-version-min=10.5 -arch i386 -O3
-else
-DEBUGFLAGS = -g
-endif
 
-# osx 10.9 has changed the stdlib default to libc++. To prevent some link error, you may need to use libstdc++
-CFLAGS += -stdlib=libstdc++
+CFLAGS = -mmacosx-version-min=10.9 -O3
 
-# ppc doesn't work because we don't support big-endian
-CFLAGS += -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter \
+CFLAGS += -arch x86_64
+
+
+CFLAGS += -w -Wextra -Wno-sign-compare -Wno-invalid-offsetof -Wformat-security \
     $(DEBUGFLAGS) $(DEFS) $(INCLUDEPATHS)
 
 OBJS= \
-    leveldb/libleveldb.a \
+      leveldb/libleveldb.a \
     obj/alert.o \
     obj/version.o \
     obj/checkpoints.o \
@@ -108,16 +94,7 @@ OBJS= \
     obj/leveldb.o \
     obj/txdb.o
 
-ifdef USE_SSE2
-DEFS += -DUSE_SSE2
-OBJS_SSE2= obj/scrypt-sse2.o
-OBJS += $(OBJS_SSE2)
-endif
-
-ifndef USE_UPNP
-	override USE_UPNP = -
-endif
-ifneq (${USE_UPNP}, -)
+ifdef USE_UPNP
 	DEFS += -DUSE_UPNP=$(USE_UPNP)
 ifdef STATIC
 	LIBS += $(DEPSDIR)/lib/libminiupnpc.a
@@ -126,16 +103,8 @@ else
 endif
 endif
 
-ifneq (${USE_IPV6}, -)
-	DEFS += -DUSE_IPV6=$(USE_IPV6)
-endif
+all: gamecoin
 
-all: gamecoind
-
-test check: test_gamecoin FORCE
-	./test_gamecoin
-
-#
 # LevelDB support
 #
 LIBS += $(CURDIR)/leveldb/libleveldb.a $(CURDIR)/leveldb/libmemenv.a
@@ -144,21 +113,23 @@ DEFS += $(addprefix -I,$(CURDIR)/leveldb/helpers)
 leveldb/libleveldb.a:
 	@echo "Building LevelDB ..." && cd leveldb && $(MAKE) CC=$(CC) CXX=$(CXX) OPT="$(CFLAGS)" libleveldb.a libmemenv.a && cd ..
 
+
+
 # auto-generated dependencies:
 -include obj/*.P
 -include obj-test/*.P
+
+obj/scrypt.o: scrypt.c
+	gcc -c $(CFLAGS) -MMD -o $@ $<
+	@cp $(@:%.o=%.d) $(@:%.o=%.P); \
+	  sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
+	  rm -f $(@:%.o=%.d)
 
 obj/build.h: FORCE
 	/bin/sh ../share/genbuild.sh obj/build.h
 version.cpp: obj/build.h
 DEFS += -DHAVE_BUILD_INFO
-
-obj/%-sse2.o: %-sse2.cpp
-	$(CXX) -c $(CFLAGS) -msse2 -MMD -MF $(@:%.o=%.d) -o $@ $<
-	@cp $(@:%.o=%.d) $(@:%.o=%.P); \
-	  sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
-	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
-	  rm -f $(@:%.o=%.d)
 
 obj/%.o: %.cpp
 	$(CXX) -c $(CFLAGS) -MMD -MF $(@:%.o=%.d) -o $@ $<
@@ -167,7 +138,7 @@ obj/%.o: %.cpp
 	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
 	  rm -f $(@:%.o=%.d)
 
-gamecoind: $(OBJS:obj/%=obj/%)
+gamecoin: $(OBJS:obj/%=obj/%)
 	$(CXX) $(CFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS)
 
 TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
@@ -179,16 +150,15 @@ obj-test/%.o: test/%.cpp
 	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
 	  rm -f $(@:%.o=%.d)
 
-test_gamecoin: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
+test_gameCoin: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
 	$(CXX) $(CFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS) $(TESTLIBS)
 
 clean:
-	-rm -f gamecoind test_gamecoin
+	-rm -f gamecoin test_gamecoin
 	-rm -f obj/*.o
 	-rm -f obj-test/*.o
 	-rm -f obj/*.P
 	-rm -f obj-test/*.P
-	-rm -f obj/build.h
-	-cd leveldb && $(MAKE) clean || true
+	-rm -f src/build.h
 
 FORCE:

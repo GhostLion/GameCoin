@@ -50,7 +50,7 @@ contains(USE_UPNP, -) {
     }
     DEFINES += USE_UPNP=$$USE_UPNP STATICLIB
     INCLUDEPATH += /usr/local/opt/miniupnpc/lib
-    LIBS += $$join(MINIUPNPC_LIB_PATH,,-L,) -lminiupnpc
+    LIBS += /usr/local/opt/miniupnpc/lib/ -lminiupnpc
     win32:LIBS += -liphlpapi
 }
 
