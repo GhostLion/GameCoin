@@ -7,7 +7,7 @@ inherit db-use eutils fdo-mime gnome2-utils kde4-functions qt4-r2
 DB_VER="4.8"
 
 DESCRIPTION="GameCoin - a hybrid PoW+PoS energy efficient p2p-cryptocurrency and electronic payment system."
-HOMEPAGE="https://gameco.in/"
+HOMEPAGE="https://novaco.in/"
 SRC_URI="https://github.com/${PN}-project/${PN}/archive/nvc-v${PV}.tar.gz -> ${PN}-${PV}.tar.gz"
 
 LICENSE="MIT"

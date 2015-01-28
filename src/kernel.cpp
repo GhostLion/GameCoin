@@ -14,7 +14,7 @@ using namespace std;
 
 
 // Protocol switch time for fixed kernel modifier interval
-unsigned int nModifierSwitchTime  = 1413763200;    // Mon, 20 Oct 2014 00:00:00 GMT
+unsigned int nModifierSwitchTime  = 1428192300;    // Mon, 20 Oct 2014 00:00:00 GMT
 unsigned int nModifierTestSwitchTime = 1397520000; // Tue, 15 Apr 2014 00:00:00 GMT
 
 // Note: user must upgrade before the protocol switch deadline, otherwise it's required to

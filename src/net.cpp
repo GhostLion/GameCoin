@@ -1084,6 +1084,14 @@ void MapPort()
 }
 #endif
 
+
+
+
+
+
+
+
+
 // DNS seeds
 // Each pair gives a source name and a seed name.
 // The first name is used as information source for addrman.
@@ -1148,6 +1156,16 @@ void ThreadDNSAddressSeed2(void* parg)
 }
 
 
+
+
+
+
+
+
+
+
+
+
 uint32_t pnSeed[] =
 {
     0xa52bf0da, 0x30aa43d8, 0x614488d5, 0x517b6fd5, 0xd4bf62d4, 0xb7d638d4, 0xbc12bcd1, 0xa2501bc6,
@@ -1178,7 +1196,7 @@ const char* pchTorSeed[] =
     "5rg3vq4jagckeckf.onion",
     "seedt3sraf53ajiy.onion",
     "seedg4qyccsg42oq.onion",
-    "gameqrtoywpg7jly.onion",
+    "novaqrtoywpg7jly.onion",
     "seed3d5wolqbgrcb.onion",
     "seed24u5dwph3qw4.onion",
     "mj26ulzbs2oskgym.onion",

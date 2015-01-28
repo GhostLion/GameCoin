@@ -197,7 +197,7 @@ static struct StunSrv StunSrvList[263] = {
     {"stun.node4.co.uk", 3478},
     {"stun.nonoh.net", 3478},
     {"stun.nottingham.ac.uk", 3478},
-    {"stun.game.is", 3478},
+    {"stun.nova.is", 3478},
     {"stun.nventure.com", 3478},
     {"stun.on.net.mk", 3478},
     {"stun.ooma.com", 3478},

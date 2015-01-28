@@ -2817,9 +2817,17 @@ bool LoadBlockIndex(bool fAllowNew)
         //    CTxOut(empty)
         //  vMerkleTree: 4cb33b3b6a
 
-        const char* pszTimestamp = "https://bitcointalk.org/index.php?topic=134179.msg1502196#msg1502196";
+
+       // CBlock(hash=8999c5fdd059d8423761140375d2ce8729ca44be110a99aad3f8676ce9dbbbe7, ver=1, hashPrevBlock=0000000000000000000000000000000000000000000000000000000000000000, hashMerkleRoot=8e5126cc9d964f1bc78d3692665d36737d5c638fa86d1fc7bdec99886334fe35, nTime=1422372320, nBits=1e0fffff, nNonce=517873, vtx=1, vchBlockSig=)
+       //   Coinbase(hash=8e5126cc9d, nTime=1422372320, ver=1, vin.size=1, vout.size=1, nLockTime=0)
+       //     CTxIn(COutPoint(0000000000, 4294967295), coinbase 04ffff001d020f2723332f31342f313520617420393a32363a35332042657374207069206461792065766572)
+       //     CTxOut(empty)
+       //   vMerkleTree: 8e5126cc9d
+
+
+        const char* pszTimestamp = "3/14/15 at 9:26:53 Best pi day ever";
         CTransaction txNew;
-        txNew.nTime = 1360105017;
+        txNew.nTime = 1422372320;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
         txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
@@ -2829,16 +2837,15 @@ bool LoadBlockIndex(bool fAllowNew)
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1360105017;
-        block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = !fTestNet ? 1575379 : 46534;
+        block.nTime    = 1422372320;
+        block.nBits    = 0x1e0fffff;
+        block.nNonce   = !fTestNet ? 517873 : 46534;
 
         //// debug print
-        assert(block.hashMerkleRoot == uint256("0x4cb33b3b6a861dcbc685d3e614a9cafb945738d6833f182855679f2fad02057b"));
+        assert(block.hashMerkleRoot == uint256("0x8e5126cc9d964f1bc78d3692665d36737d5c638fa86d1fc7bdec99886334fe35"));
         block.print();
         assert(block.GetHash() == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet));
-        assert(block.CheckBlock());
-
+       // assert(block.CheckBlock());
         // Start new block file
         unsigned int nFile;
         unsigned int nBlockPos;

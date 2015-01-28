@@ -1920,8 +1920,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
         <translation>Сторонние URL транзакций</translation>
     </message>
     <message>
-        <source>Third party URLs (e.g. explorer.gameco.in) that appear in the transactions tab as context menu items. %s in the URL is replaced by transaction hash. Multiple URLs are separated by vertical bar |.</source>
-        <translation>Сторонние URL (например explorer.gameco.in), которые отображаются на вкладке транзакций как пункты контекстного меню. %s в URL заменяется хешем транзакции. URL отделяются друг от друга вертикальной чертой |.</translation>
+        <source>Third party URLs (e.g. explorer.novaco.in) that appear in the transactions tab as context menu items. %s in the URL is replaced by transaction hash. Multiple URLs are separated by vertical bar |.</source>
+        <translation>Сторонние URL (например explorer.novaco.in), которые отображаются на вкладке транзакций как пункты контекстного меню. %s в URL заменяется хешем транзакции. URL отделяются друг от друга вертикальной чертой |.</translation>
     </message>
     <message>
         <location line="+71"/>
@@ -3392,8 +3392,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="-28"/>
-        <source>Listen for connections on &lt;port&gt; (default: 7777 or testnet: 17777)</source>
-        <translation>Принимать входящие подключения на &lt;port&gt; (по умолчанию: 7777 или 17777 в тестовой сети)</translation>
+        <source>Listen for connections on &lt;port&gt; (default: 11067 or testnet: 1436)</source>
+        <translation>Принимать входящие подключения на &lt;port&gt; (по умолчанию: 11067 или 1436 в тестовой сети)</translation>
     </message>
     <message>
         <location line="+4"/>
@@ -3457,8 +3457,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location line="+5"/>
-        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 8344 or testnet: 18344)</source>
-        <translation>Прослушивать подключения JSON-RPC на &lt;порту&gt; (по умолчанию: 8344 или для testnet: 18344)</translation>
+        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 21067 or testnet: 542)</source>
+        <translation>Прослушивать подключения JSON-RPC на &lt;порту&gt; (по умолчанию: 21067 или для testnet: 542)</translation>
     </message>
     <message>
         <location line="+16"/>
